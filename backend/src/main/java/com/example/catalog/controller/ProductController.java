@@ -1,9 +1,25 @@
-package com.example.catalog;
+package com.example.catalog.controller;
 
-import com.example.catalog.Pages.*;
-import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.catalog.dto.Pages.Benchmark;
+import com.example.catalog.dto.Pages.CursorPage;
+import com.example.catalog.dto.Pages.OffsetPage;
+import com.example.catalog.dto.ProductRequest;
+import com.example.catalog.model.Product;
+import com.example.catalog.service.ProductService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/products")
@@ -17,19 +33,19 @@ public class ProductController {
 
     @GetMapping("/offset")
     public OffsetPage offset(@RequestParam(defaultValue = "0") int page,
-                             @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size) {
         return service.offsetPage(page, size);
     }
 
     @GetMapping("/cursor")
     public CursorPage cursor(@RequestParam(required = false) Long after,
-                             @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size) {
         return service.cursorPage(after, size);
     }
 
     @GetMapping("/benchmark")
     public Benchmark benchmark(@RequestParam(defaultValue = "20") int size,
-                               @RequestParam(defaultValue = "5") int runs) {
+            @RequestParam(defaultValue = "5") int runs) {
         return service.benchmark(size, runs);
     }
 

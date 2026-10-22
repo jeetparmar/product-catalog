@@ -1,6 +1,8 @@
-package com.example.catalog;
+package com.example.catalog.service;
 
-import com.example.catalog.Pages.*;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -9,8 +11,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.example.catalog.dto.Pages.Benchmark;
+import com.example.catalog.dto.Pages.BenchmarkRow;
+import com.example.catalog.dto.Pages.CursorPage;
+import com.example.catalog.dto.Pages.OffsetPage;
+import com.example.catalog.dto.ProductRequest;
+import com.example.catalog.model.Product;
+import com.example.catalog.repository.ProductRepository;
 
 @Service
 public class ProductService {
@@ -57,8 +64,8 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public Product get(Long id) {
-        return repo.findById(id).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "Product " + id + " not found"));
+        return repo.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product " + id + " not found"));
     }
 
     @Transactional
@@ -98,20 +105,23 @@ public class ProductService {
         size = clampSize(size);
         runs = Math.min(Math.max(runs, 1), 20);
         long total = repo.count();
-        double[] fractions = {0, 0.10, 0.25, 0.50, 0.75, 0.90};
+        double[] fractions = { 0, 0.10, 0.25, 0.50, 0.75, 0.90 };
         List<BenchmarkRow> rows = new ArrayList<>();
 
         for (double f : fractions) {
             long position = (long) (total * f);
-            position -= position % size;                 // align to a page boundary
-            if (position >= total) continue;
+            position -= position % size; // align to a page boundary
+            if (position >= total)
+                continue;
             int page = (int) (position / size);
 
-            // Cursor equal to the id of the row just before `position` (not part of the timing).
+            // Cursor equal to the id of the row just before `position` (not part of the
+            // timing).
             long cursor = 0L;
             if (position > 0) {
                 var prev = repo.findAllBy(PageRequest.of((int) position - 1, 1, BY_ID)).getContent();
-                if (prev.isEmpty()) continue;
+                if (prev.isEmpty())
+                    continue;
                 cursor = prev.get(0).getId();
             }
 
@@ -134,7 +144,7 @@ public class ProductService {
             query.run();
             sum += System.nanoTime() - start;
         }
-        return Math.round(sum / (double) runs / 10_000.0) / 100.0;   // ms, 2 decimals
+        return Math.round(sum / (double) runs / 10_000.0) / 100.0; // ms, 2 decimals
     }
 
     private static double ms(long startNanos) {

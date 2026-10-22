@@ -1,11 +1,4 @@
-package com.example.catalog;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
+package com.example.catalog.config;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -15,12 +8,21 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
+
+import com.example.catalog.repository.ProductRepository;
+
 /** Loads products.csv (1000 rows) on first start, when the table is empty. */
 @Component
 public class DataLoader implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DataLoader.class);
-    static final String INSERT = """
+    public static final String INSERT = """
             INSERT INTO products (name, category, brand, price, stock, description, created_at)
             VALUES (?, ?, ?, ?, ?, ?, ?)""";
 
@@ -34,7 +36,8 @@ public class DataLoader implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        if (repo.count() > 0) return;
+        if (repo.count() > 0)
+            return;
 
         List<Object[]> batch = new ArrayList<>();
         LocalDateTime now = LocalDateTime.now();
@@ -45,8 +48,8 @@ public class DataLoader implements CommandLineRunner {
             int i = 0;
             while ((line = reader.readLine()) != null) {
                 String[] c = line.split(",", -1);
-                batch.add(new Object[]{c[0], c[1], c[2], new BigDecimal(c[3]),
-                        Integer.parseInt(c[4]), c[5], now.minusMinutes(1000 - i++)});
+                batch.add(new Object[] { c[0], c[1], c[2], new BigDecimal(c[3]),
+                        Integer.parseInt(c[4]), c[5], now.minusMinutes(1000 - i++) });
             }
         }
         jdbc.batchUpdate(INSERT, batch);
